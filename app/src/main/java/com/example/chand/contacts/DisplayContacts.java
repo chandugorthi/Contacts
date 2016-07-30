@@ -75,6 +75,7 @@ public class DisplayContacts extends AppCompatActivity implements NewContact.Upd
     }
 
     // Update the list to find the contacts containing the string entered in the search box
+    // We search using contact name or email or phone number
     // This search case-sensitive
     public void update(String s){
 
@@ -85,8 +86,9 @@ public class DisplayContacts extends AppCompatActivity implements NewContact.Upd
             adap = new ContactsAdapter(this, contacts,email);
         } else {
             HashMap<String,ArrayList<String>> tempCon = new HashMap<>();
+            // Search if string matches contact name or email or phone number
             for (String key : contacts.keySet()){
-                if(key.contains(s)){
+                if(key.contains(s) || contacts.get(key).get(0).contains(s) || contacts.get(key).get(1).contains(s)){
                     tempCon.put(key,contacts.get(key));
                 }
             }

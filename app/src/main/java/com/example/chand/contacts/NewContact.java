@@ -56,7 +56,7 @@ public class NewContact extends Fragment implements View.OnClickListener{
             update= (UpdateList) activity;
         } catch (ClassCastException e) {
             throw new ClassCastException(activity.toString()
-                    + " must implement TextClicked");
+                    + " must implement Add button functionality");
         }
     }
 
