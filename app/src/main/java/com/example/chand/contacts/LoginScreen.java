@@ -23,9 +23,6 @@ public class LoginScreen extends AppCompatActivity {
      * A dummy authentication store containing known user names and passwords.
      * TODO: remove after connecting to a real authentication system.
      */
-    private static final String[] DUMMY_CREDENTIALS = new String[]{
-            "foo@example.com:hello", "bar@example.com:world"
-    };
 
     private DBManager contactsDB = new DBManager(this);
 
@@ -39,7 +36,13 @@ public class LoginScreen extends AppCompatActivity {
     // Go to user registration page
     public void user_signup(View v){
 
+        String email = ((EditText) findViewById(R.id.email)).getText().toString();
+        String pswd = ((EditText) findViewById(R.id.password)).getText().toString();
         Intent i = new Intent(LoginScreen.this, SignUp.class);
+        Bundle data = new Bundle();
+        data.putString("email", email);
+        data.putString("pswd", pswd);
+        i.putExtras(data);
         startActivity(i);
 
     }
@@ -73,7 +76,7 @@ public class LoginScreen extends AppCompatActivity {
 
     // Validate password
     private boolean isPasswordValid(String password) {
-        //TODO: Replace this with your own logic
+
         return password.length() > 5;
     }
 

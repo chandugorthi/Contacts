@@ -24,8 +24,12 @@ public class SignUp extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
         setContentView(R.layout.activity_sign_up);
+        Bundle getData = getIntent().getExtras();
+        EditText email = (EditText) findViewById(R.id.email_text);
+        email.setText(getData.getString("email"));
+        EditText pswd = (EditText) findViewById(R.id.password_text);
+        pswd.setText(getData.getString("pswd"));
 
     }
 
