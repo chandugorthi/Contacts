@@ -1,7 +1,9 @@
 package com.example.chand.contacts;
 
 import android.app.FragmentTransaction;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.Editable;
@@ -14,12 +16,13 @@ import android.widget.FrameLayout;
 import android.widget.TextView;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 
 public class DisplayContacts extends AppCompatActivity implements NewContact.UpdateList, DBManager.DBUpdateList {
 
     private String email;
-    HashMap<String,ArrayList<String>> contacts = new HashMap<>();
+    ArrayList<Contact> contacts = new ArrayList<>();
     ExpandableListView list;
     ContactsAdapter adap;
 
@@ -81,17 +84,24 @@ public class DisplayContacts extends AppCompatActivity implements NewContact.Upd
 
         contacts.clear();
         list = (ExpandableListView) findViewById(R.id.listView);
-        contacts.putAll(ContactsExtractor.getInfo(getBaseContext(),email));
+        contacts.addAll(ContactsExtractor.getInfo(getBaseContext(),email));
+        Collections.sort(contacts);
+
         if (s.equals("")) {
+            TextView num = (TextView) findViewById(R.id.numcontacts);
+            num.setText( contacts.size() + "/" + contacts.size());
             adap = new ContactsAdapter(this, contacts,email);
         } else {
-            HashMap<String,ArrayList<String>> tempCon = new HashMap<>();
+            ArrayList<Contact> tempCon = new ArrayList<>();
             // Search if string matches contact name or email or phone number
-            for (String key : contacts.keySet()){
-                if(key.contains(s) || contacts.get(key).get(0).contains(s) || contacts.get(key).get(1).contains(s)){
-                    tempCon.put(key,contacts.get(key));
+            for (Contact one : contacts){
+                if(one.getFullName().contains(s) || one.getEmail().contains(s) || one.getPhNumber().contains(s)){
+                    tempCon.add(one);
                 }
             }
+
+            TextView num = (TextView) findViewById(R.id.numcontacts);
+            num.setText( tempCon.size() + "/" + contacts.size());
             adap = new ContactsAdapter(this,tempCon,email);
         }
         list.setAdapter(adap);
@@ -99,15 +109,11 @@ public class DisplayContacts extends AppCompatActivity implements NewContact.Upd
         list.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                String name = ((TextView)view.findViewById(R.id.contact_item)).getText().toString();
-                ArrayList<String> details = contacts.get(name);
-                String email = details.get(0);
-                String num = details.get(1);
                 Intent i = new Intent(DisplayContacts.this, EditContact.class);
                 Bundle data = new Bundle();
-                data.putString("name", name);
-                data.putString("email", email);
-                data.putString("num", num);
+                data.putString("name", contacts.get(position).getFullName());
+                data.putString("email", contacts.get(position).getEmail());
+                data.putString("num", contacts.get(position).getPhNumber());
                 i.putExtras(data);
                 startActivity(i);
             }
@@ -124,5 +130,24 @@ public class DisplayContacts extends AppCompatActivity implements NewContact.Upd
     @Override
     public void dBRefreshList() {
         update("");
+    }
+
+    @Override
+    public void onBackPressed(){
+        FrameLayout layout = (FrameLayout) findViewById(R.id.contactFragment);
+        if ( layout.getVisibility() == View.VISIBLE ) {
+            layout.setVisibility(View.GONE);
+        } else {
+            AlertDialog exitMsg = new AlertDialog.Builder(this).setIcon(android.R.drawable.ic_dialog_alert).setTitle("Exit")
+                    .setMessage("Are you sure you want to logout ?")
+                    .setPositiveButton("yes", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+
+                            finish();
+
+                        }
+                    }).setNegativeButton("no", null).show();
+        }
     }
 }

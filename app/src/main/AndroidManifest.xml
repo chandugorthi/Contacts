@@ -29,8 +29,11 @@
             android:theme="@style/Theme.AppCompat.NoActionBar" />
         <activity
             android:name=".DisplayContacts"
-            android:theme="@style/Theme.AppCompat.NoActionBar" />
-        <activity android:name=".EditContact"></activity>
+            android:theme="@style/Theme.AppCompat.NoActionBar"
+            android:parentActivityName="com.example.chand.contacts.LoginScreen"/>
+        <activity android:name=".EditContact"
+            android:theme="@style/Theme.AppCompat.NoActionBar"
+            android:parentActivityName="com.example.chand.contacts.DisplayContacts"/>
     </application>
 
 </manifest>

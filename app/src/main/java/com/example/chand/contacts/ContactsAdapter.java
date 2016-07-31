@@ -1,9 +1,11 @@
 package com.example.chand.contacts;
 
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Typeface;
 import android.os.Bundle;
+import android.support.v7.app.AlertDialog;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -22,35 +24,39 @@ public class ContactsAdapter extends BaseExpandableListAdapter {
     // Defining a List adapter to display the items in the style we want
 
     private Context context;
-    private HashMap<String,ArrayList<String>> contacts = new HashMap<>();
+    private ArrayList<Contact> contacts = new ArrayList<>();
     private ArrayList<String> contactDetails = new ArrayList<>();
     private String email;
 
-    public ContactsAdapter(Context context, HashMap<String,ArrayList<String>> contacts, String email){
+    public ContactsAdapter(Context context, ArrayList<Contact> contacts, String email){
         this.context = context;
-        this.contacts.putAll(contacts);
-        this.contactDetails.addAll(contacts.keySet());
+        this.contacts.addAll(contacts);
+        //this.contactDetails.addAll(contacts.keySet());
         this.email = email;
     }
 
     @Override
     public int getGroupCount() {
-        return contactDetails.size();
+        return contacts.size();
     }
 
     @Override
     public int getChildrenCount(int groupPosition) {
-        return contacts.get(contactDetails.get(groupPosition)).size();
+        return 2;
     }
 
     @Override
     public Object getGroup(int groupPosition) {
-        return contactDetails.get(groupPosition);
+        return contacts.get(groupPosition).getFullName();
     }
 
     @Override
     public Object getChild(int groupPosition, int childPosition) {
-        return contacts.get(contactDetails.get(groupPosition)).get(childPosition);
+        if (childPosition == 1){
+            return contacts.get(groupPosition).getEmail();
+        } else {
+            return contacts.get(groupPosition).getPhNumber();
+        }
     }
 
     @Override
@@ -69,7 +75,7 @@ public class ContactsAdapter extends BaseExpandableListAdapter {
     }
 
     @Override
-    public View getGroupView(int groupPosition, boolean isExpanded, View convertView, ViewGroup parent) {
+    public View getGroupView(final int groupPosition, boolean isExpanded, View convertView, ViewGroup parent) {
 
         final String contactName = (String) getGroup(groupPosition);
         if ( convertView == null){
@@ -87,8 +93,8 @@ public class ContactsAdapter extends BaseExpandableListAdapter {
                 Intent i = new Intent(context,EditContact.class);
                 Bundle data = new Bundle();
                 data.putString("conName", contactName);
-                data.putString("conEmail",contacts.get(contactName).get(0));
-                data.putString("conNum", contacts.get(contactName).get(1));
+                data.putString("conEmail",contacts.get(groupPosition).getEmail());
+                data.putString("conNum", contacts.get(groupPosition).getPhNumber());
                 data.putString("userEmail", email);
                 i.putExtras(data);
                 context.startActivity(i);
@@ -98,8 +104,16 @@ public class ContactsAdapter extends BaseExpandableListAdapter {
         delete.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                DBManager db = new DBManager(context);
-                db.deleteContact(contacts.get(contactName).get(0), contacts.get(contactName).get(1), email);
+                AlertDialog exitMsg = new AlertDialog.Builder(context).setIcon(android.R.drawable.ic_dialog_alert).setTitle("Delete")
+                        .setMessage("Are you sure do you want to delete ?")
+                        .setPositiveButton("yes", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+
+                                DBManager db = new DBManager(context);
+                                db.deleteContact(contacts.get(groupPosition).getEmail(), contacts.get(groupPosition).getEmail(), email);
+                            }
+                        }).setNegativeButton("no", null).show();
             }
         });
 
@@ -116,8 +130,15 @@ public class ContactsAdapter extends BaseExpandableListAdapter {
             convertView = inflater.inflate(R.layout.contact_item_child, parent, false);
         }
 
-        TextView detailField = (TextView) convertView.findViewById(R.id.contact_child_item);
-        detailField.setText(contactDetail);
+        if (!isLastChild) {
+            TextView detailField1 = (TextView) convertView.findViewById(R.id.contact_child_item_1);
+            detailField1.setText("Email: ");
+        } else {
+            TextView detailField1 = (TextView) convertView.findViewById(R.id.contact_child_item_1);
+            detailField1.setText("Phone: ");
+        }
+        TextView detailField2 = (TextView) convertView.findViewById(R.id.contact_child_item_2);
+        detailField2.setText(contactDetail);
 
         return convertView;
     }

@@ -112,10 +112,13 @@ public class DBManager extends SQLiteOpenHelper {
 
         if (cursor.moveToFirst()){
             if ( cursor.getString(0).equals(password)){
+                cursor.close();
                 return 1;
             }
+            cursor.close();
             return 0;
         } else {
+            cursor.close();
             return -1;
         }
     }
@@ -126,8 +129,6 @@ public class DBManager extends SQLiteOpenHelper {
         db = getReadableDatabase();
         String query = "SELECT " + CONTACT_NAME + " FROM " + TABLE_CONTACTS + " WHERE " + CONTACT_EMAIL + " = \"" + con.getEmail() + "\" AND " + CONTACT_PHONE_NUM + " = \"" + con.getPhNumber() + "\" AND " + CONTACT_USER + " = \"" + email + "\"";
         Cursor cursor = db.rawQuery(query, null);
-
-        //************************** TODO *******************************************
 
         String name = null;
 
@@ -140,6 +141,7 @@ public class DBManager extends SQLiteOpenHelper {
         if ( name == null ){
             insert(con, email);
         }
+        cursor.close();
 
         return name;
 
@@ -160,22 +162,24 @@ public class DBManager extends SQLiteOpenHelper {
     }
 
     //Get all contacts of the current user
-    public HashMap<String, ArrayList<String>> getContacts(String email){
+    public ArrayList<Contact> getContacts(String email){
 
         db = getReadableDatabase();
         String query = "SELECT * FROM " + TABLE_CONTACTS + " WHERE " + CONTACT_USER + " = \"" + email + "\"";
         Cursor cursor = db.rawQuery(query, null);
 
 
-        HashMap<String, ArrayList<String>> contacts = new HashMap<>();
+        ArrayList<Contact> contacts = new ArrayList<>();
         if (cursor.moveToFirst()){
             do {
-                ArrayList<String> contactDetails = new ArrayList<>();
-                contactDetails.add(cursor.getString(1));
-                contactDetails.add(cursor.getString(2));
-                contacts.put(cursor.getString(0),contactDetails);
+                Contact one = new Contact();
+                one.setFullName(cursor.getString(0));
+                one.setEmail(cursor.getString(1));
+                one.setPhNumber(cursor.getString(2));
+                contacts.add(one);
             } while(cursor.moveToNext());
         }
+        cursor.close();
 
         return contacts;
     }
@@ -192,24 +196,45 @@ public class DBManager extends SQLiteOpenHelper {
     }
 
     //Update Contact Information
-    public void updateCon(String conEmail, String conNum, String userEmail, String oldConEmail, String oldConNum){
+    public boolean updateCon(String conName, String conEmail, String conNum, String userEmail, String oldConEmail, String oldConNum){
 
-        db = getWritableDatabase();
-        /*String query = "UPDATE " + TABLE_CONTACTS + " SET " + CONTACT_EMAIL + " = \"" + conEmail + "\", " + CONTACT_PHONE_NUM + " = " + conNum + " WHERE " + CONTACT_EMAIL + " = \"" + oldConEmail + "\" AND " + CONTACT_PHONE_NUM + " = " + oldConNum + " AND " + CONTACT_USER + " = \"" + userEmail +"\"";
-        Cursor cursor = db.rawQuery(query, null);*/
+        db = getReadableDatabase();
 
-        ContentValues c = new ContentValues();
-        c.put(CONTACT_EMAIL, conEmail);
-        c.put(CONTACT_PHONE_NUM, conNum);
+        // Update only if either the name alone is updated or if no other contact with same email and contact number combination is not found.
+        boolean update = false;
+        if( conEmail.equals(oldConEmail) && conNum.equals(oldConNum)){
+            update = true;
+        } else {
+            String query = "SELECT " + CONTACT_NAME + " FROM " + TABLE_CONTACTS + " WHERE " + CONTACT_EMAIL + " = \"" + conEmail + "\" AND " + CONTACT_PHONE_NUM + " = \"" + conNum + "\" AND " + CONTACT_USER + " = \"" + userEmail + "\"";
+            Cursor cursor = db.rawQuery(query, null);
+            if (cursor.getCount()==0){
+                update = true;
+            }
+            cursor.close();
+        }
 
-        db.update( TABLE_CONTACTS, c, CONTACT_EMAIL + " = \"" + oldConEmail + "\" AND " + CONTACT_PHONE_NUM + " = " + oldConNum + " AND " + CONTACT_USER + " = \"" + userEmail + "\"", null);
+        if (update) {
+            db = getWritableDatabase();
+            /*String query = "UPDATE " + TABLE_CONTACTS + " SET " + CONTACT_EMAIL + " = \"" + conEmail + "\", " + CONTACT_PHONE_NUM + " = " + conNum + " WHERE " + CONTACT_EMAIL + " = \"" + oldConEmail + "\" AND " + CONTACT_PHONE_NUM + " = " + oldConNum + " AND " + CONTACT_USER + " = \"" + userEmail +"\"";
+            Cursor cursor = db.rawQuery(query, null);*/
 
-        Intent i = new Intent(context,DisplayContacts.class);
-        Bundle data = new Bundle();
-        data.putString("email", userEmail);
-        i.putExtras(data);
-        context.startActivity(i);
+            ContentValues c = new ContentValues();
+            c.put(CONTACT_NAME, conName);
+            c.put(CONTACT_EMAIL, conEmail);
+            c.put(CONTACT_PHONE_NUM, conNum);
 
+            db.update(TABLE_CONTACTS, c, CONTACT_EMAIL + " = \"" + oldConEmail + "\" AND " + CONTACT_PHONE_NUM + " = " + oldConNum + " AND " + CONTACT_USER + " = \"" + userEmail + "\"", null);
+
+            Intent i = new Intent(context, DisplayContacts.class);
+            Bundle data = new Bundle();
+            data.putString("email", userEmail);
+            i.putExtras(data);
+            context.startActivity(i);
+
+            return true;
+        }
+
+        return false;
 
     }
 

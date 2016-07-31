@@ -6,20 +6,23 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 public class EditContact extends AppCompatActivity {
 
     DBManager contacts = new DBManager(this);
     private String oldConEmail;
     private String oldConNum;
+    private String oldConName;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_edit_contact);
         Bundle getData = getIntent().getExtras();
-        TextView name = (TextView) findViewById(R.id.nameValue);
+        EditText name = (EditText) findViewById(R.id.nameValue);
         name.setText(getData.getString("conName"));
+        oldConName = getData.getString("conName");
         EditText email = (EditText) findViewById(R.id.emailValue);
         email.setText(getData.getString("conEmail"));
         oldConEmail = getData.getString("conEmail");
@@ -32,11 +35,17 @@ public class EditContact extends AppCompatActivity {
     public void updateDB(View v){
 
         Bundle getData = getIntent().getExtras();
+        String conName = ((EditText) findViewById(R.id.nameValue)).getText().toString();
         String conEmail = ((EditText) findViewById(R.id.emailValue)).getText().toString();
         String conNum = ((EditText) findViewById(R.id.contactValue)).getText().toString();
         String userEmail = getData.getString("userEmail");
 
-        contacts.updateCon( conEmail, conNum, userEmail, oldConEmail, oldConNum);
+        //Try updating the DB only if any of the previous details of the contact is changed
+        if ( conName.equals(oldConName) && conEmail.equals(oldConEmail) && conNum.equals(oldConNum)){
+            Toast.makeText(this,"There is no change to be udpated." ,Toast.LENGTH_LONG).show();
+        } else if (!contacts.updateCon( conName, conEmail, conNum, userEmail, oldConEmail, oldConNum)){
+            Toast.makeText(this,"There is already a contact with same email and phone number.",Toast.LENGTH_LONG).show();
+        }
     }
 
     // Cancel all changes and go back to previous screen

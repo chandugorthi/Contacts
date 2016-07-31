@@ -3,7 +3,7 @@ package com.example.chand.contacts;
 /**
  * Created by chand on 7/27/2016.
  */
-public class Contact {
+public class Contact implements Comparable {
 
     private String fullName;
     private String email;
@@ -33,4 +33,9 @@ public class Contact {
         this.phNumber = phNumber;
     }
 
+    @Override
+    public int compareTo(Object another) {
+        Contact copy =  (Contact) another;
+        return fullName.toLowerCase().compareTo(copy.getFullName().toLowerCase());
+    }
 }

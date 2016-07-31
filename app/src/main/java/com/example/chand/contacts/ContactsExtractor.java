@@ -12,12 +12,12 @@ public class ContactsExtractor {
 
     // Class for populating the contacts of a user
 
-    public static HashMap<String,ArrayList<String>> getInfo(Context context, String email){
+    public static ArrayList<Contact> getInfo(Context context, String email){
 
-        HashMap<String,ArrayList<String>> contacts = new HashMap<>();
+        ArrayList<Contact> contacts = new ArrayList<>();
 
         DBManager db = new DBManager(context);
-        contacts.putAll(db.getContacts(email));
+        contacts.addAll(db.getContacts(email));
         return contacts;
 
     }
